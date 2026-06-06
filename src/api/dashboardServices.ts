@@ -13,6 +13,7 @@ export function useDashboardService() {
   const getAdminDashboardStats = async (): Promise<DashboardStats> => {
     return apiCall({
       endpoint: `Dashboard/AdminDashboard`,
+      
     });
   };
 
