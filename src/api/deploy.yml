@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -17,16 +18,18 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Adjust this to match your local Node.js version
+          node-version: '20'
           cache: 'npm'
+          cache-dependency-path: './truck-app-frontend/package-lock.json'
 
       - name: Install dependencies
-        run: npm ci # Uses clean install for reliable builds
+        run: npm ci
+        working-directory: ./truck-app-frontend
 
       - name: Build Next.js app
         run: npm run build
+        working-directory: ./truck-app-frontend
         env:
-          # Map your GitHub secrets to Next.js environment variables here
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
           NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_KEY }}
           NODE_ENV: production
@@ -40,5 +43,4 @@ jobs:
 
       - name: Deploy static site to S3 bucket
         run: |
-          aws s3 sync ./out s3://${{ secrets.AWS_S3_BUCKET }} --delete
-        # The --delete flag ensures old files are removed from S3 if they no longer exist in the new build
+          aws s3 sync ./truck-app-frontend/out s3://${{ secrets.AWS_S3_BUCKET }} --delete
