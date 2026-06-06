@@ -17,6 +17,8 @@ export interface GoogleMapProps {
 export interface LocationDropdown {
   locationSID: string;
   locationName: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface addLocation{
