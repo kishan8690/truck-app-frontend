@@ -1,0 +1,43 @@
+name: Deploy Next.js to AWS S3
+
+on:
+  push:
+    branches:
+      - main # Change this to your default branch name if it's 'master'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Adjust this to match your local Node.js version
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci # Uses clean install for reliable builds
+
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          # Map your GitHub secrets to Next.js environment variables here
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+          NEXT_PUBLIC_GOOGLE_MAPS_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_KEY }}
+          NODE_ENV: production
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Deploy static site to S3 bucket
+        run: |
+          aws s3 sync ./out s3://${{ secrets.AWS_S3_BUCKET }} --delete
+        # The --delete flag ensures old files are removed from S3 if they no longer exist in the new build
